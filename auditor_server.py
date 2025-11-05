@@ -228,6 +228,26 @@ def handle_submit_expense(body):
     print(f"[server] expense ciphertext stored for {doc_id}")
     return {"status":"ok"}
 
+def audit_show_encrypted_and_decrypted():
+    exps = load_expenses()
+    if not exps:
+        print("No expenses found.")
+        return
+
+    print("\n=== Encrypted vs Decrypted Expense Amounts ===")
+    for entry in exps:
+        doc_id = entry["doctor_id"]
+        ciphertext = int(entry["ciphertext"])
+
+        # decrypt using homomorphic RSA trick
+        decrypted_amount = rsa_homo_decrypt_sum(ciphertext)  # will give you original expense
+
+        print(f"Doctor: {doc_id}")
+        print(f"  Encrypted (ciphertext): {ciphertext}")
+        print(f"  Decrypted (actual amount): {decrypted_amount}")
+        print("------------------------------------------------")
+
+
 class RequestHandler(socketserver.StreamRequestHandler):
     def handle(self):
         try:
@@ -421,29 +441,41 @@ def audit_verify_reports():
 def auditor_menu():
     while True:
         print("\n[Auditor Menu]")
-        print("1) List doctors (show encrypted and plaintext dept)")
-        print("2) Keyword search doctors by dept (Paillier)")
-        print("3) Sum expenses (RSA-in-exponent demo)")
-        print("4) Verify reports and timestamps")
-        print("5) Show server public info")
+        print("1) List doctors (show encrypted + plaintext dept)")
+        print("2) Keyword search doctors by dept (Paillier homomorphic search)")
+        print("3) Sum total expenses (homomorphic RSA)")
+        print("4) Show encrypted + decrypted individual expenses")  # ✅ <-- NEW
+        print("5) Verify reports and timestamps (ElGamal + MD5)")
+        print("6) Show server public info (RSA + Paillier keys)")
         print("0) Exit")
+
         ch = input("Select: ").strip()
+
         if ch == "1":
             audit_list_doctors()
+
         elif ch == "2":
             audit_keyword_search()
+
         elif ch == "3":
             audit_sum_expenses()
-        elif ch == "4":
-            audit_verify_reports()
+
+        elif ch == "4":   # ✅ <-- NEW OPTION
+            audit_show_encrypted_and_decrypted()
+
         elif ch == "5":
+            audit_verify_reports()
+
+        elif ch == "6":
             info = get_public_info()
             print(json.dumps(info, indent=2))
+
         elif ch == "0":
-            print("bye")
+            print("Exiting auditor menu...")
             break
+
         else:
-            print("invalid")
+            print("Invalid selection. Please try again.")
 
 if __name__ == "__main__":
     start_server()

@@ -1,0 +1,5 @@
+in the existing qs, using AES for encrypting before sending,
+RSA for encrypt AES, RSA-OEAP, ElGamal, MD5, Paillier Homomorphic enc, RSA Homomorphic
+
+
+first run client, then server. 
